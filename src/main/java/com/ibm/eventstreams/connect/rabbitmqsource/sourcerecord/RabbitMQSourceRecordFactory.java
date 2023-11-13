@@ -105,7 +105,9 @@ public class RabbitMQSourceRecordFactory {
         final String messageBody = value.getString(ValueSchema.FIELD_MESSAGE_BODY);
         long timestamp = Optional.ofNullable(basicProperties.getTimestamp()).map(Date::getTime).orElse(this.time.milliseconds());
 
-        S3Uploader s3Uploader = new S3Uploader(topic, messageBody);
+        String bucketName = this.config.s3BucketName;
+        //TODO: folder name should be in config
+        S3Uploader s3Uploader = new S3Uploader(bucketName, "messages");
         String kafkaPayload = s3Uploader.uploadData(messageBody);
 
         return new SourceRecord(
