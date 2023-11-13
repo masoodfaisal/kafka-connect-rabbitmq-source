@@ -1,6 +1,7 @@
 package com.ibm.eventstreams.connect.rabbitmqsource.sourcerecord;
 
 import com.google.common.collect.ImmutableMap;
+import com.ibm.eventstreams.connect.rabbitmqsource.aws.S3Uploader;
 import com.ibm.eventstreams.connect.rabbitmqsource.config.RabbitMQSourceConnectorConfig;
 import com.ibm.eventstreams.connect.rabbitmqsource.schema.EnvelopeSchema;
 import com.ibm.eventstreams.connect.rabbitmqsource.schema.KeySchema;
@@ -104,6 +105,9 @@ public class RabbitMQSourceRecordFactory {
         final String messageBody = value.getString(ValueSchema.FIELD_MESSAGE_BODY);
         long timestamp = Optional.ofNullable(basicProperties.getTimestamp()).map(Date::getTime).orElse(this.time.milliseconds());
 
+        S3Uploader s3Uploader = new S3Uploader(topic, messageBody);
+        String kafkaPayload = s3Uploader.uploadData(messageBody);
+
         return new SourceRecord(
                 sourcePartition,
                 sourceOffset,
@@ -112,7 +116,7 @@ public class RabbitMQSourceRecordFactory {
                 OPTIONAL_STRING_SCHEMA,
                 key,
                 STRING_SCHEMA,
-                messageBody,
+                kafkaPayload,
                 timestamp,
                 headers
         );
